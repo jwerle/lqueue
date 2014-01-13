@@ -91,17 +91,25 @@ argv = argv.map(function (arg, i) {
 cmd = argv.shift();
 switch (cmd) {
   case 'shift':
-    shift(argv);
+    try {
+      shift(argv);
+    } catch (e) {
+      verbose("error: %s", e.message);
+    }
   break;
 
   case 'push':
-    push(argv);
+    try {
+      push(argv);
+    } catch (e) {
+      verbose("error: %s", e.message);
+    }
   break;
 
   default:
     e("error: unknown command `%s'", cmd);
-  usage();
-  exit(1);
+    usage();
+    exit(1);
 }
 
 /**
@@ -127,7 +135,7 @@ function shift (argv) {
         exit(1);
       }
 
-      p(item.value);
+      p(item.value.replace(/\n/g,' '));
       exit(0);
     });
   })
@@ -137,7 +145,7 @@ function shift (argv) {
   })
   .on('end', function () {
     if (empty) {
-      e("error: queue empty");
+      verbose("error: queue empty");
       exit(1);
     }
   });
