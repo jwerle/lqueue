@@ -39,7 +39,7 @@ function help () {
   p("  `LQUEUE_DB_PATH=%s'", LQUEUE_DB_PATH);
   p();
   p("commands:");
-  p("  unshift unshift on to the queue");
+  p("  push    push on to the queue");
   p("  shift   shift off of the queue");
   p();
   p("options:");
