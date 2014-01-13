@@ -109,6 +109,7 @@ switch (cmd) {
  */
 
 function shift (argv) {
+  var empty = true;
   var db = null;
   var stream = null;
   var idx = 0;
@@ -118,6 +119,7 @@ function shift (argv) {
 
   (stream = db.createReadStream())
   .on('data', function (item) {
+    empty = false;
     db.del(item.key, function (err) {
       if (err) {
         e("error: %s", err.message);
@@ -133,8 +135,10 @@ function shift (argv) {
     exit(1);
   })
   .on('end', function () {
-    e("error: queue empty");
-    exit(1);
+    if (empty) {
+      e("error: queue empty");
+      exit(1);
+    }
   });
 }
 
