@@ -1,6 +1,6 @@
 {
   "name": "lqueue",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Push and shift data to a queue from the command line",
   "main": "index.js",
   "preferGlobal": true,
