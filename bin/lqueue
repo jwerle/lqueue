@@ -120,6 +120,7 @@ function shift (argv) {
   (stream = db.createReadStream())
   .on('data', function (item) {
     empty = false;
+    stream.end();
     db.del(item.key, function (err) {
       if (err) {
         e("error: %s", err.message);
