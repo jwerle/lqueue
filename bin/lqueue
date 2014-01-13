@@ -1,0 +1,220 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies
+ */
+
+var level = require('level')
+  , sublevel = require('sublevel')
+  , pkg = require('../package')
+  , tty = require('tty')
+
+var HOME = process.env.HOME;
+var LQUEUE_DB_PATH = process.env.LQUEUE_DB_PATH || HOME + '/.lqueue';
+var VERSION = pkg.version;
+
+var stdin = process.stdin;
+var stdout = process.stdout;
+var exit = process.exit;
+var argv = process.argv;
+var p = console.log;
+var e = console.error;
+
+var verboseEnabled = false;
+var arg = null;
+var cmd = null;
+var stream = null;
+
+argv.shift(); // node
+argv.shift(); // self
+
+function usage () {
+  p("usage: lqueue [-hvV] [shift|push] <arg>");
+}
+
+function help () {
+  usage();
+
+  p();
+  p("  `LQUEUE_DB_PATH=%s'", LQUEUE_DB_PATH);
+  p();
+  p("commands:");
+  p("  unshift unshift on to the queue");
+  p("  shift   shift off of the queue");
+  p();
+  p("options:");
+  p("  -h      display this message");
+  p("  -v      display verbose output");
+  p("  -V      output program version");
+  exit(0);
+}
+
+function version () {
+  p(VERSION);
+  exit(0);
+}
+
+function verbose () {
+  if (verboseEnabled) {
+    stdout.write("verbose: ");
+    p.apply(console, arguments);
+  }
+
+}
+
+// parse opts
+argv = argv.map(function (arg, i) {
+  if ('-' != arg[0]) return arg;
+  switch (arg) {
+    case '-h':
+      if (0 === i) {
+        help();
+      }
+    break;
+
+    case '-V':
+      version();
+    break;
+
+    case '-v':
+      verboseEnabled = true;
+    break;
+
+    default:
+      e("error: unknown option `%s'", arg);
+      usage();
+      exit(1);
+
+  }
+});
+
+cmd = argv.shift();
+switch (cmd) {
+  case 'shift':
+    shift(argv);
+  break;
+
+  case 'push':
+    push(argv);
+  break;
+
+  default:
+    e("error: unknown command `%s'", cmd);
+  usage();
+  exit(1);
+}
+
+/**
+ * Shift off of the queue
+ */
+
+function shift (argv) {
+  var db = null;
+  var stream = null;
+  var idx = 0;
+  var items = [];
+
+  db = sublevel(level(LQUEUE_DB_PATH, 'items'));
+
+  (stream = db.createReadStream())
+  .on('data', function (item) {
+    db.del(item.key, function (err) {
+      if (err) {
+        e("error: %s", err.message);
+        exit(1);
+      }
+
+      p(item.value);
+      exit(0);
+    });
+  })
+  .on('error', function (err) {
+    e("error: %s", err.message);
+    exit(1);
+  })
+  .on('end', function () {
+    e("error: queue empty");
+    exit(1);
+  });
+}
+
+/**
+ * Push to the queue
+ */
+
+function push (argv) {
+  var db = null;
+  var stream = null;
+  var last = null;
+  var idx = 0;
+  var buf = [];
+
+  db = sublevel(level(LQUEUE_DB_PATH, 'items'));
+
+  (stream = db.createReadStream())
+  .on('data', function (item) {
+    last = item;
+    idx = item.key;
+
+    verbose("read (%d) %s...", item.key,
+            item.value
+            .substr(0, 15)
+            .replace(/\n/g, ' '));
+  })
+  .on('error', function (err) {
+    e("error: %s", err.message);
+    exit(1);
+  })
+  .on('end', function () {
+    if (null === last) {
+      verbose("queue empty");
+      idx = 0;
+    }
+
+    var empty = true;
+
+    if (false === tty.isatty()) {
+      stdin
+      .on('data', function (chunk) {
+        empty = false;
+        if (null !== chunk) {
+          buf.push(chunk);
+        }
+      })
+      .on('end', function () {
+        write();
+      });
+    } else {
+      argv = argv
+      .filter(Boolean)
+      .filter(function (arg) {
+        return '-' != arg[0];
+      });
+
+      write();
+    }
+  });
+
+  function write () {
+    var batch = db.batch();
+    if (argv.length) {
+      buf.unshift(argv.join(' '));
+    }
+
+    buf
+    .map(String)
+    .filter(Boolean)
+    .forEach(function (ch) {
+      batch.put(++idx, ch);
+      verbose("put (%d) %s...", idx,
+              ch
+              .substr(0, 15)
+              .replace(/\n/g,' '));
+    });
+
+    batch
+    .write(function () {
+      verbose("write ok");
+    });
+  }
+}

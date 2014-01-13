@@ -1,0 +1,24 @@
+{
+  "name": "lqueue",
+  "version": "0.0.1",
+  "description": "Push and shift data to a queue from the command line",
+  "main": "index.js",
+  "preferGlobal": true,
+  "bin": {
+    "lqueue": "bin/lqueue"
+  },
+  "scripts": {
+    "install": "make man"
+  },
+  "keywords": [
+    "level",
+    "queue",
+    "cli"
+  ],
+  "author": "Joseph Werle",
+  "license": "MIT",
+  "dependencies": {
+    "sublevel": "~2.4.0",
+    "level": "~0.18.0"
+  }
+}

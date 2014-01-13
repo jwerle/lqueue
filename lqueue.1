@@ -1,0 +1,75 @@
+.\" Generated with Ronnjs 0.3.8
+.\" http://github.com/kapouer/ronnjs/
+.
+.TH "LQUEUE" "1" "January 2014" "" ""
+.
+.SH "NAME"
+\fBlqueue\fR \-\- Push and pop data to a stack from the command line
+.
+.SH "SYNOPSIS"
+\fBlqueue\fR [\-hvV] [push|pop] <arg>
+.
+.SH "OPTIONS"
+  \-h      display this message
+  \-v      display verbose output
+  \-V      output program version
+.
+.SH "COMMANDS"
+  push    push on to the queue
+  shift   shift off of the queue
+.
+.SH "USAGE"
+.
+.SS "push"
+  \fB
+  $ lqueue push foo
+  \fR
+.
+.P
+  \.\.or from stdin
+.
+.P
+  \fB
+  $ echo bar | lqueue push
+  \fR
+.
+.SS "shift"
+  \fB
+  $ lqueue shift
+  foo
+  \fR
+.
+.P
+  Use the \fB\-v\fR flag for verbose output\.
+.
+.P
+  \fB
+  $ lqueue push 123 \-v
+  verbose: queue empty
+  verbose: put (1) 123\.\.\.
+  verbose: write ok
+  \fR
+.
+.SH "AUTHOR"
+.
+.IP "\(bu" 4
+Joseph Werle \fIjoseph\.werle@gmail\.com\fR
+.
+.IP "" 0
+.
+.SH "REPORTING BUGS"
+.
+.IP "\(bu" 4
+\fIhttps://github\.com/jwerle/lqueue/issues\fR
+.
+.IP "" 0
+.
+.SH "SEE ALSO"
+.
+.IP "\(bu" 4
+\fIhttps://github\.com/jwerle/lqueue\fR
+.
+.IP "" 0
+.
+.SH "LICENSE"
+MIT
